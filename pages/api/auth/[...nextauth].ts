@@ -56,9 +56,22 @@ export const authOptions: AuthOptions = {
   pages: {
     signIn: "/",
   },
-  debug: process.env.NODE_ENV === "development",
+  debug:
+    process.env.NEXTAUTH_DEBUG === "true" ||
+    process.env.NODE_ENV === "development",
   session: {
     strategy: "jwt",
+  },
+  events: {
+    async signIn(message: any) {
+      console.log("[NextAuth:event:signIn]", message);
+    },
+    async createUser(message: any) {
+      console.log("[NextAuth:event:createUser]", message);
+    },
+    async linkAccount(message: any) {
+      console.log("[NextAuth:event:linkAccount]", message);
+    },
   },
   logger: {
     error(code, metadata) {
