@@ -26,30 +26,31 @@ export const authOptions: AuthOptions = {
         password: { label: "password", type: "password" },
       },
       async authorize(credentials, req) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Invalid credentials");
+        try {
+          const email = credentials?.email?.toLowerCase().trim();
+          const password = credentials?.password ?? "";
+
+          if (!email || !password) {
+            // Returning null tells NextAuth to fail with CredentialsSignin instead of 500
+            return null;
+          }
+
+          const user = await prismaDB.user.findUnique({
+            where: { email },
+          });
+
+          if (!user || !user.hashedPassword) {
+            return null;
+          }
+
+          const ok = await bcrypt.compare(password, user.hashedPassword);
+          if (!ok) return null;
+
+          return user;
+        } catch (e) {
+          console.error("[NextAuth:authorize:error]", e);
+          return null;
         }
-
-        const user = await prismaDB.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        });
-
-        if (!user || !user?.hashedPassword) {
-          throw new Error("Invalid credentials");
-        }
-
-        const isPasswordCorrect = await bcrypt.compare(
-          credentials.password,
-          user.hashedPassword
-        );
-
-        if (!isPasswordCorrect) {
-          throw new Error("Invalid password");
-        }
-
-        return user;
       },
     }),
   ],
