@@ -17,6 +17,7 @@ export const authOptions: AuthOptions = {
     GithubProvider({
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      authorization: { params: { scope: "read:user user:email" } },
     }),
     CredentialsProvider({
       name: "credentials",
@@ -58,6 +59,19 @@ export const authOptions: AuthOptions = {
   debug: process.env.NODE_ENV === "development",
   session: {
     strategy: "jwt",
+  },
+  logger: {
+    error(code, metadata) {
+      console.error("[NextAuth:error]", code, metadata);
+    },
+    warn(code) {
+      console.warn("[NextAuth:warn]", code);
+    },
+    debug(code, metadata) {
+      if (process.env.NODE_ENV !== "production") {
+        console.debug("[NextAuth:debug]", code, metadata);
+      }
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
